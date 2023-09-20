@@ -82,8 +82,4 @@ dependencies:
 #conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/pytorch/
 #conda config --set show_channel_urls yes
 #pip config set global.index-url https://mirrors.ustc.edu.cn/pypi/web/simple
-#  conda create -n invhalf python==3.8.5 --yes
-#  conda activate invhalf
-#  conda install pytorch==1.8.0 torchvision==0.9.0 torchaudio cudatoolkit=10.2 --yes
-#  pip install opencv-python
 #  pip install mmcv==0.2.4

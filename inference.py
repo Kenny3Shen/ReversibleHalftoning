@@ -1,23 +1,22 @@
-import numpy as np
-import cv2
-import os, argparse, json
-from os.path import join
+import argparse
+import os
+from collections import OrderedDict
 from glob import glob
+from os.path import join
 
+import cv2
+import numpy as np
 import torch
 import torch.nn.functional as F
 from PIL import Image
-from model.model import ResHalf
+
 from model.model import Quantize
-from model.loss import l1_loss
+from model.model import ResHalf
 from utils import util
-from utils.dct import DCT_Lowfrequency
-from utils.filters_tensor import bgr2gray
-from collections import OrderedDict
 
 
 class Inferencer:
-    def __init__(self, checkpoint_path, model, use_cuda=True, multi_gpu=False):
+    def __init__(self, checkpoint_path, model, use_cuda=False, multi_gpu=False):
         self.checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
         self.use_cuda = use_cuda
         self.model = model.eval()

@@ -61,9 +61,8 @@ class ResHalf(nn.Module):
     # 前向传播
     def forward(self, *x):
         # 原代码中并没有正确接收 decoding_only 参数
-        # 在初始化函数中新增 isDecodingOnly 属性
-        # x[0]: color_image RGB图像
-        # x[1]: ref_halftone 半调图像
+        # x[0]: ref_halftone 半调图像
+        # x[1]: decoding_only
         # print(x[0].shape, x[1]) -> (tensor, bool)
         # noise = torch.randn_like(x[1]) * 0.3
         if not x[1]:
@@ -77,6 +76,7 @@ class ResHalf(nn.Module):
         else:
             restored = self.decoder(x[0])
             return restored
+
         if self.isTrain:  # Train
             halfDCT = self.dcter(halfRes / 2. + 0.5)
             refDCT = self.dcter(bgr2gray(x[0] / 2. + 0.5))

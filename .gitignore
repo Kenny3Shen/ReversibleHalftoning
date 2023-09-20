@@ -8,3 +8,4 @@ checkpoints/model_best.pth.tar
 /dataset/
 /dataset.rar
 /checkpoints/
+/.vscode/

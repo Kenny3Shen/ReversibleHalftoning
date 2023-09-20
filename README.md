@@ -24,7 +24,11 @@ Existing halftoning algorithms usually drop colors and fine details when ditheri
    * Basic variant infomation: Python 3.7 and Pytorch 1.0.1.
    * Create a virutal environment with satisfied requirements:
      ```
-     pip install opencv-python torchvision
+     conda create -n invhalf python==3.8.5 --yes
+     conda activate invhalf
+     conda install pytorch==1.8.0 torchvision==0.9.0 torchaudio cudatoolkit=10.2 --yes
+     pip install opencv-python
+     pip install mmcv==0.2.4
      ```
 2. **Training**:
 
@@ -50,7 +54,7 @@ Existing halftoning algorithms usually drop colors and fine details when ditheri
      ```
    * [Restoration]: Restore the generated halftone back to RGB images
      ```bash
-     python inference.py --model checkpoints/model_best.pth.tar --data_dir ./test_imgs --save_dir ./result --decoding
+     python inference.py --model checkpoints/model_best.pth.tar --data_dir ./test_re --save_dir ./result --decoding
      ```
 
 ## Copyright and License
