@@ -1,0 +1,10 @@
+# Ignore .DS_Store files on macOS
+.DS_Store
+**/..DS_Store
+checkpoints/model_best.pth.tar
+/JPEGImages/
+/dataset2/
+/dataset1/
+/dataset/
+/dataset.rar
+/checkpoints/
