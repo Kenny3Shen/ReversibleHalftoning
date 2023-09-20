@@ -76,6 +76,12 @@ dependencies:
     - torch==1.0.1.post2
     - urllib3==1.24.1
 
+#conda config --remove-key channels
+#conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/main/
+#conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/free/
+#conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/pytorch/
+#conda config --set show_channel_urls yes
+#pip config set global.index-url https://mirrors.ustc.edu.cn/pypi/web/simple
 #  conda create -n invhalf python==3.8.5 --yes
 #  conda activate invhalf
 #  conda install pytorch==1.8.0 torchvision==0.9.0 torchaudio cudatoolkit=10.2 --yes
