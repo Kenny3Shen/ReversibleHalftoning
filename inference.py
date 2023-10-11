@@ -5,7 +5,6 @@ from glob import glob
 from os.path import join
 
 import cv2
-import numpy as np
 import torch
 import torch.nn.functional as F
 from PIL import Image
@@ -93,35 +92,30 @@ if __name__ == '__main__':
         print('[*] processing %s ...' % img)
         (name, suffix) = img.split('\\')[-1].split('.')
         if args.decoding:
-            # output restored image only
-            # Given groups=1, weight of size [64, 4, 3, 3], expected input[1, 1, H, W] to have 4 channels, but got 1 channels instead
-            # 出现上述错误是因为没有正确进入 self.model 的 decoder 分支
-            # print(np.array(Image.open(img)).shape)
-            # 读入灰度图片
+            # np.array(Image.open(img)).shape) 读入灰度图片
             input_img = cv2.imread(img, flags=cv2.IMREAD_GRAYSCALE) / 127.5 - 1.
+            print(input_img.shape)
             c = invhalfer(util.img2tensor(input_img), decoding_only=True)  # __call__
             c = util.tensor2img(c / 2. + 0.5) * 255.
-            cv2.imwrite(join(save_dir, 'restore_half_' + name + '.png'), c)
+            cv2.imwrite(join(save_dir, f'restore_half_{name}.{suffix}'), c)
         else:
-            # RuntimeError: Given groups=1, weight of size [64, 4, 3, 3], expected input[1, 3, H, W] to have 4 channels, but got 3 channels instead
-            # 需要将[H,W,C]中的 C(channel) 修改为4通道 RGBA
-            if suffix != 'png':
-                Image.open(img).save(f"./{data_dir}/{name}.png")
-                os.remove(img)
-                img = f"./{data_dir}/{name}.png"
-            if np.array(Image.open(img)).shape[-1] != 4:
-                Image.open(img).convert("RGBA").save(f"{img}")
+            # RuntimeError: Given groups=1, weight of size [64, 4, 3, 3], expected input[1, 3, H, W] to have 4
+            # channels, but got 3 channels instead 需要将[H,W,C]中的 C(channel) 修改为4通道 RGBA
+            # if suffix != 'png':
+            #     Image.open(img).save(f"./{data_dir}/{name}.png")
+            #     os.remove(img)
+            #     img = f"./{data_dir}/{name}.png"
+            # if np.array(Image.open(img)).shape[-1] != 4:
+                # Image.open(img).convert("RGBA").save(f"{img}")
 
-            # 读入完整图片包括 alpha 通道
-            # 对比源代码此处将 flags 参数从 cv2.IMREAD_COLOR 修改为 cv2.IMREAD_UNCHANGED
-            input_img = cv2.imread(img, flags=cv2.IMREAD_UNCHANGED) / 127.5 - 1.
+            input_img = cv2.imread(img, flags=cv2.IMREAD_COLOR) / 127.5 - 1.
             # print(input_img.shape)
             # img2tensor: 将 NumPy 矩阵[H,W,C](灰度图像没有维度 C) 转换为 PyTorch 4维矩阵 [B,C,H,W]
             h, c = invhalfer(util.img2tensor(input_img), decoding_only=False)
             # tensor2img： PyTorch -> NumPy
             h = util.tensor2img(h / 2. + 0.5) * 255.
             c = util.tensor2img(c / 2. + 0.5) * 255.
-            cv2.imwrite(join(save_dir, 'halftone_' + name + '.png'), h)
-            cv2.imwrite(join(save_dir, 'restored_' + name + '.png'), c)
+            cv2.imwrite(join(save_dir, f'halftone_{name}.{suffix}'), h)
+            cv2.imwrite(join(save_dir, f'restored_{name}.{suffix}'), c)
             # cv2.imwrite(join(save_dir, 'halftone_' + img.split('/')[-1].split('.')[0] + '.png'), h)
             # cv2.imwrite(join(save_dir, 'restored_' + img.split('/')[-1].split('.')[0] + '.png'), c)

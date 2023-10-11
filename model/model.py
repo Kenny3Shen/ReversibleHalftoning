@@ -1,14 +1,12 @@
+import cv2
+import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.autograd import Function
 
-from .hourglass import HourGlass
 from utils.dct import DCT_Lowfrequency
 from utils.filters_tensor import bgr2gray
-
-from collections import OrderedDict
-import numpy as np
+from .hourglass import HourGlass
 
 
 class Quantize(Function):
@@ -27,19 +25,19 @@ class Quantize(Function):
 class ResHalf(nn.Module):
     def __init__(self, train=True, warm_stage=False):
         super(ResHalf, self).__init__()
-        # 接收 RGBA 图像(4通道)，输出灰度图像(1通道)
+        # 接收叠加了高斯噪声的 RGB 图像(4通道)，输出灰度图像(1通道)
         self.encoder = HourGlass(inChannel=4, outChannel=1, resNum=4, convNum=4)
         # 接收灰度图像，输出 RGB 图像
         self.decoder = HourGlass(inChannel=1, outChannel=3, resNum=4, convNum=4)
         # 执行离散余弦变换（DCT）
         if train:
             self.dcter = DCT_Lowfrequency(size=256, fLimit=50)
-        # 量化数据 quantize [-1,1] data to be {-1,1}
+        # 量化数据 quantize [-1,1] data to be {0,1}
         self.quantizer = lambda x: Quantize.apply(0.5 * (x + 1.)) * 2. - 1.
         self.isTrain = train
         if warm_stage:
             for name, param in self.decoder.named_parameters():
-                # 参数在训练过程中将不会更新
+                # 参数在热身过程中将不会更新
                 param.requires_grad = False
 
     # 向输入添加脉冲噪声 params = (半色调图像, 概率p)
@@ -59,27 +57,24 @@ class ResHalf(nn.Module):
         return torch.from_numpy(np_input_halfs.transpose((0, 3, 1, 2))).to(input_halfs.device)
 
     # 前向传播
-    def forward(self, *x):
-        # 原代码中并没有正确接收 decoding_only 参数
-        # x[0]: ref_halftone 半调图像
-        # x[1]: decoding_only
-        # print(x[0].shape, x[1]) -> (tensor, bool)
-        # noise = torch.randn_like(x[1]) * 0.3
-        if not x[1]:
-            # halfRes = self.encoder(torch.cat((x[0], noise), dim=1))
-            halfRes = self.encoder(x[0])
-            # halfRes = self.encoder(torch.cat((input_tensor+noise_map, input_tensor-noise_map), dim=1))
-            halfResQ = self.quantizer(halfRes)
-            # ! for testing only
-            # halfResQ = self.add_impluse_noise(halfResQ, p=0.20)
+    def forward(self, input_img, decoding_only=False):
+        if decoding_only:
+            halfResQ = self.quantizer(input_img)
             restored = self.decoder(halfResQ)
-        else:
-            restored = self.decoder(x[0])
             return restored
 
-        if self.isTrain:  # Train
+        noise = torch.randn_like(input_img) * 0.3   # 0.3 可能与蓝噪声损失系数有关
+        noise_zero = torch.zeros_like(input_img)
+        noise_one = torch.ones_like(input_img)
+        halfNoise = torch.cat((input_img, noise[:, :1, :, :]), dim=1)
+        cv2.imwrite("halfNoise.png", halfNoise[0].detach().cpu().numpy().transpose((1, 2, 0)) * 255)
+        halfRes = self.encoder(halfNoise)
+        halfResQ = self.quantizer(halfRes)
+        restored = self.decoder(halfResQ)
+
+        if self.isTrain:
             halfDCT = self.dcter(halfRes / 2. + 0.5)
-            refDCT = self.dcter(bgr2gray(x[0] / 2. + 0.5))
+            refDCT = self.dcter(bgr2gray(input_img / 2. + 0.5))
             return halfRes, halfDCT, refDCT, restored
         else:
             return halfRes, restored

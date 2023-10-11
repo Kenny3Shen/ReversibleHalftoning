@@ -29,7 +29,7 @@ class Trainer():
         ensure_dir(self.checkpoint_dir)
         json.dump(config, open(os.path.join(self.checkpoint_dir, 'config.json'), 'w'),
                   indent=4, sort_keys=False)
-        print("@Workspace: %s *************"%self.checkpoint_dir)
+        print("@Workspace: %s *************" % self.checkpoint_dir)
         self.cache = os.path.join(self.checkpoint_dir, 'train_cache')
         self.val_halftone = os.path.join(self.cache, 'halftone')
         self.val_restored = os.path.join(self.cache, 'restored')
@@ -46,25 +46,25 @@ class Trainer():
         ## optimizer
         self.optimizer = getattr(optim, config['optimizer_type'])(self.model.parameters(), **config['optimizer'])
         self.lr_sheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, **config['lr_sheduler'])
-        
+
         ## dataset loader
         with open(os.path.join(config['data_dir'], config['data_loader']['dataset'])) as f:
             dataset = json.load(f)
         train_set = Dataset(dataset['train'])
         self.train_data_loader = DataLoader(train_set, batch_size=config['data_loader']['batch_size'],
-                                   shuffle=config['data_loader']['shuffle'],
-                                   num_workers=config['data_loader']['num_workers'])
+                                            shuffle=config['data_loader']['shuffle'],
+                                            num_workers=config['data_loader']['num_workers'])
         val_set = Dataset(dataset['val'])
         self.valid_data_loader = DataLoader(val_set, batch_size=config['data_loader']['batch_size'],
-                                   shuffle=False,
-                                   num_workers=config['data_loader']['num_workers'])
+                                            shuffle=False,
+                                            num_workers=config['data_loader']['num_workers'])
         # special dataloader: constant color images
         with open(os.path.join(config['data_dir'], config['data_loader']['special_set'])) as f:
             dataset = json.load(f)
         specialSet = Dataset(dataset['train'])
         self.specialDataloader = DataLoader(specialSet, batch_size=config['data_loader']['batch_size'],
-                                    shuffle=config['data_loader']['shuffle'],
-                                    num_workers=config['data_loader']['num_workers'])
+                                            shuffle=config['data_loader']['shuffle'],
+                                            num_workers=config['data_loader']['num_workers'])
 
         ## loss function
         self.quantizeLoss = eval(config['quantizeLoss'])
@@ -87,13 +87,12 @@ class Trainer():
             checkpt_path = self.resume_path
         assert os.path.exists(checkpt_path), 'Invalid checkpoint Path: %s' % checkpt_path
         self.load_checkpoint(checkpt_path)
-        
-    
+
     def _train(self):
         torch.manual_seed(self.config['seed'])
         torch.cuda.manual_seed(self.config['seed'])
         cudnn.benchmark = True
-        
+
         start_time = time.time()
         self.monitor_best = 999.
         for epoch in range(self.start_epoch, self.n_epochs + 1):
@@ -104,13 +103,13 @@ class Trainer():
             epoch_lr = self.optimizer.state_dict()['param_groups'][0]['lr']
             epoch_metric = self._valid_epoch(epoch)
             print("[*] --- epoch: %d/%d | loss: %4.4f | metric: %4.4f | time-consumed: %4.2f ---" % \
-                (epoch+1, self.n_epochs, epoch_loss['total_loss'], epoch_metric, (time.time()-ep_st)))
+                  (epoch + 1, self.n_epochs, epoch_loss['total_loss'], epoch_metric, (time.time() - ep_st)))
 
             # save losses and learning rate
             epoch_loss['metric'] = epoch_metric
             epoch_loss['lr'] = epoch_lr
             self.save_loss(epoch_loss, epoch)
-            if ((epoch+1) % self.save_freq == 0 or epoch == (self.n_epochs-1)):
+            if ((epoch + 1) % self.save_freq == 0 or epoch == (self.n_epochs - 1)):
                 print('---------- saving model ...')
                 self.save_checkpoint(epoch)
             if self.monitor_best > epoch_metric:
@@ -119,13 +118,11 @@ class Trainer():
 
         print("Training finished! consumed %f sec" % (time.time() - start_time))
 
-
     def _to_variable(self, data, target):
         data, target = Variable(data), Variable(target)
         if self.with_cuda:
             data, target = data.cuda(), target.cuda()
         return data, target
-
 
     def _train_epoch(self, epoch):
         self.model.train()
@@ -160,13 +157,13 @@ class Trainer():
             toneLossSpecial = self.toneLoss(output[0], specialColor)
             blueNoiseLoss = l1_loss(output[1], output[2])
             quantizeLossSpecial = self.quantizeLoss(output[0])
-            loss = (self.toneLossWeight * toneLoss + self.blueNoiseLossWeight*toneLossSpecial) \
-                   + self.quantizeLossWeight * (0.5*quantizeLoss + 0.5*quantizeLossSpecial) \
+            loss = (self.toneLossWeight * toneLoss + self.blueNoiseLossWeight * toneLossSpecial) \
+                   + self.quantizeLossWeight * (0.5 * quantizeLoss + 0.5 * quantizeLossSpecial) \
                    + self.structureLossWeight * structureLoss \
                    + self.blueNoiseLossWeight * blueNoiseLoss \
                    + self.vggLossWeight * vggLoss \
                    + self.restoreLossWeight * restoreLoss
-                   
+
             loss.backward()
             # apply grad clip to make training roboust
             # torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.0001)
@@ -174,24 +171,23 @@ class Trainer():
 
             total_loss += loss.item()
             quantize_loss += quantizeLoss.item()
-            restore_loss += (self.restoreLossWeight*restoreLoss + self.vggLossWeight*vggLoss).item()
+            restore_loss += (self.restoreLossWeight * restoreLoss + self.vggLossWeight * vggLoss).item()
             tone_loss += toneLoss.item()
             structure_loss += structureLoss.item()
             blue_noise_loss += blueNoiseLoss.item()
             if batch_idx % 100 == 0:
                 tm = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-                print("%s >> [%d/%d] iter:%d loss:%4.4f "%(tm, epoch+1, self.n_epochs, batch_idx+1, loss.item()))
+                print("%s >> [%d/%d] iter:%d loss:%4.4f " % (tm, epoch + 1, self.n_epochs, batch_idx + 1, loss.item()))
 
         epoch_loss = dict()
-        epoch_loss['total_loss'] = total_loss / (batch_idx+1)
-        epoch_loss['quantize_loss'] = quantize_loss / (batch_idx+1)
-        epoch_loss['tone_loss'] = tone_loss / (batch_idx+1)
-        epoch_loss['structure_loss'] = structure_loss / (batch_idx+1)
-        epoch_loss['bluenoise_loss'] = blue_noise_loss / (batch_idx+1)
-        epoch_loss['restore_loss'] = restore_loss / (batch_idx+1)
+        epoch_loss['total_loss'] = total_loss / (batch_idx + 1)
+        epoch_loss['quantize_loss'] = quantize_loss / (batch_idx + 1)
+        epoch_loss['tone_loss'] = tone_loss / (batch_idx + 1)
+        epoch_loss['structure_loss'] = structure_loss / (batch_idx + 1)
+        epoch_loss['bluenoise_loss'] = blue_noise_loss / (batch_idx + 1)
+        epoch_loss['restore_loss'] = restore_loss / (batch_idx + 1)
 
         return epoch_loss
-
 
     def _valid_epoch(self, epoch):
         self.model.eval()
@@ -215,14 +211,13 @@ class Trainer():
                        + self.restoreLossWeight * restoreLoss
 
                 total_loss += loss.item()
-                #! save intermediate images
+                # ! save intermediate images
                 gray_imgs = tensor2array(output[0])
                 color_imgs = tensor2array(output[-1])
                 save_images_from_batch(gray_imgs, self.val_halftone, None, batch_idx)
                 save_images_from_batch(color_imgs, self.val_restored, None, batch_idx)
-            
-            return total_loss
 
+            return total_loss
 
     def save_loss(self, epoch_loss, epoch):
         if epoch == 0:
@@ -231,7 +226,6 @@ class Trainer():
         else:
             for key in epoch_loss:
                 save_list(os.path.join(self.cache, key), [epoch_loss[key]], append_mode=True)
-
 
     def load_checkpoint(self, checkpt_path):
         print("-loading checkpoint from: {} ...".format(checkpt_path))
@@ -246,7 +240,6 @@ class Trainer():
             self.model.load_state_dict(checkpoint['state_dict'], strict=False)
         print("-pretrained checkpoint loaded.")
 
-    
     def save_checkpoint(self, epoch, save_best=False):
         state = {
             'epoch': epoch,
