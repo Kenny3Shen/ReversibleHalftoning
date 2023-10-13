@@ -93,6 +93,7 @@ if __name__ == '__main__':
         (name, suffix) = img.split('\\')[-1].split('.')
         if args.decoding:
             # np.array(Image.open(img)).shape) 读入灰度图片
+
             input_img = cv2.imread(img, flags=cv2.IMREAD_GRAYSCALE) / 127.5 - 1.
             print(input_img.shape)
             c = invhalfer(util.img2tensor(input_img), decoding_only=True)  # __call__
@@ -101,13 +102,15 @@ if __name__ == '__main__':
         else:
             # RuntimeError: Given groups=1, weight of size [64, 4, 3, 3], expected input[1, 3, H, W] to have 4
             # channels, but got 3 channels instead 需要将[H,W,C]中的 C(channel) 修改为4通道 RGBA
+
             # if suffix != 'png':
             #     Image.open(img).save(f"./{data_dir}/{name}.png")
             #     os.remove(img)
             #     img = f"./{data_dir}/{name}.png"
             # if np.array(Image.open(img)).shape[-1] != 4:
-                # Image.open(img).convert("RGBA").save(f"{img}")
+            #     Image.open(img).convert("RGBA").save(f"{img}")
 
+            # input_img = cv2.imread(img, flags=cv2.IMREAD_UNCHANGED) / 127.5 - 1.
             input_img = cv2.imread(img, flags=cv2.IMREAD_COLOR) / 127.5 - 1.
             # print(input_img.shape)
             # img2tensor: 将 NumPy 矩阵[H,W,C](灰度图像没有维度 C) 转换为 PyTorch 4维矩阵 [B,C,H,W]

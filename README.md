@@ -21,7 +21,6 @@ Existing halftoning algorithms usually drop colors and fine details when ditheri
 
 1. **Requirements**:
 
-   * Basic variant infomation: Python 3.7 and Pytorch 1.0.1.
    * Create a virutal environment with satisfied requirements:
      ```
      conda create -n invhalf python==3.8.5 --yes

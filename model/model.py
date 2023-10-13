@@ -63,9 +63,10 @@ class ResHalf(nn.Module):
             restored = self.decoder(halfResQ)
             return restored
 
-        noise = torch.randn_like(input_img) * 0.3   # 0.3 可能与蓝噪声损失系数有关
-        noise_zero = torch.zeros_like(input_img)
-        noise_one = torch.ones_like(input_img)
+        noise = torch.randn_like(input_img) * 0.   # 0.3 可能与蓝噪声损失系数有关
+        # print("noise shape: ", noise.shape)
+        noise_zero = torch.zeros_like(input_img) * 0.3
+        noise_one = torch.ones_like(input_img) * 0.3
         halfNoise = torch.cat((input_img, noise[:, :1, :, :]), dim=1)
         cv2.imwrite("halfNoise.png", halfNoise[0].detach().cpu().numpy().transpose((1, 2, 0)) * 255)
         halfRes = self.encoder(halfNoise)
