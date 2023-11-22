@@ -93,7 +93,6 @@ if __name__ == '__main__':
         (name, suffix) = img.split('\\')[-1].split('.')
         if args.decoding:
             # np.array(Image.open(img)).shape) 读入灰度图片
-
             input_img = cv2.imread(img, flags=cv2.IMREAD_GRAYSCALE) / 127.5 - 1.
             print(input_img.shape)
             c = invhalfer(util.img2tensor(input_img), decoding_only=True)  # __call__
@@ -102,14 +101,6 @@ if __name__ == '__main__':
             cv2.imwrite(join(save_dir, f'{name}.{suffix}'), c)
 
         else:
-            # if suffix != 'png':
-            #     Image.open(img).save(f"./{data_dir}/{name}.png")
-            #     os.remove(img)
-            #     img = f"./{data_dir}/{name}.png"
-            # if np.array(Image.open(img)).shape[-1] != 4:
-            #     Image.open(img).convert("RGBA").save(f"{img}")
-
-            # input_img = cv2.imread(img, flags=cv2.IMREAD_UNCHANGED) / 127.5 - 1.
             input_img = cv2.imread(img, flags=cv2.IMREAD_COLOR) / 127.5 - 1.
             # print(input_img.shape)
             # img2tensor: 将 NumPy 矩阵[H,W,C](灰度图像没有维度 C) 转换为 PyTorch 4维矩阵 [B,C,H,W]
@@ -119,5 +110,4 @@ if __name__ == '__main__':
             c = util.tensor2img(c / 2. + 0.5) * 255.
             cv2.imwrite(join(save_dir, f'halftone_{name}.{suffix}'), h)
             cv2.imwrite(join(save_dir, f'restored_{name}.{suffix}'), c)
-            # cv2.imwrite(join(save_dir, 'halftone_' + img.split('/')[-1].split('.')[0] + '.png'), h)
-            # cv2.imwrite(join(save_dir, 'restored_' + img.split('/')[-1].split('.')[0] + '.png'), c)
+
