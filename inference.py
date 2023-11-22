@@ -98,11 +98,10 @@ if __name__ == '__main__':
             print(input_img.shape)
             c = invhalfer(util.img2tensor(input_img), decoding_only=True)  # __call__
             c = util.tensor2img(c / 2. + 0.5) * 255.
-            cv2.imwrite(join(save_dir, f'restore_half_{name}.{suffix}'), c)
-        else:
-            # RuntimeError: Given groups=1, weight of size [64, 4, 3, 3], expected input[1, 3, H, W] to have 4
-            # channels, but got 3 channels instead 需要将[H,W,C]中的 C(channel) 修改为4通道 RGBA
+            #cv2.imwrite(join(save_dir, f'restore_half_{name}.{suffix}'), c)
+            cv2.imwrite(join(save_dir, f'{name}.{suffix}'), c)
 
+        else:
             # if suffix != 'png':
             #     Image.open(img).save(f"./{data_dir}/{name}.png")
             #     os.remove(img)

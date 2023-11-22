@@ -4,8 +4,8 @@ from PIL import Image
 import numpy as np
 #img1 = np.array(Image.open("./test_imgs/dog.png"))
 #img2 = np.array(Image.open("./result_noise/restored_dog.jpg"))
-img1 = np.array(Image.open("./test_imgs/dog.png"))
-img2 = np.array(Image.open("./result_one/restored_dog.png"))
+img1 = np.array(Image.open("./test_imgs/paimoon.png.").convert("RGB"))
+img2 = np.array(Image.open("./result_noise/restored_paimoon.png"))
 print(img1.shape)
 print(img2.shape)
 
