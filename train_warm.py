@@ -1,15 +1,14 @@
-import os, glob, datetime, time
-import argparse, json
+import argparse
+import datetime
+import json
+import time
 
-import torch
 import torch.optim as optim
 from torch.autograd import Variable
-import torchvision
-from torch.utils.data import DataLoader
 from torch.backends import cudnn
+from torch.utils.data import DataLoader
 
 from model.base_module import tensor2array
-from model.model import ResHalf
 from model.loss import *
 from utils.dataset import HalftoneVOC2012 as Dataset
 from utils.util import ensure_dir, save_list, save_images_from_batch

@@ -7,7 +7,6 @@ from os.path import join
 import cv2
 import torch
 import torch.nn.functional as F
-from PIL import Image
 
 from model.model import Quantize
 from model.model import ResHalf
