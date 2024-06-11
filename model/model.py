@@ -41,10 +41,6 @@ class ResHalf(nn.Module):
 
     # 向输入添加脉冲噪声 params = (半色调图像, 概率p)
     def add_impluse_noise(self, input_halfs, p=0.0):
-        # N：Batch，批处理大小，表示一个batch中的图像数量
-        # C：Channel，通道数，表示一张图像中的通道数
-        # H：Height，高度，表示图像垂直维度的像素数
-        # W：Width，宽度，表示图像水平维度的像素数
         N, C, H, W = input_halfs.shape
         SNR = 1 - p
         np_input_halfs = input_halfs.detach().to("cpu").numpy()
@@ -64,8 +60,8 @@ class ResHalf(nn.Module):
 
         noise = torch.randn_like(input_img) * 0.3   # 0.3 可能与蓝噪声损失系数有关
         # print("noise shape: ", noise.shape)
-        noise_zero = torch.zeros_like(input_img) * 0.3
-        noise_one = torch.ones_like(input_img) * 0.3
+        # noise_zero = torch.zeros_like(input_img) * 0.3
+        # noise_one = torch.ones_like(input_img) * 0.3
         halfNoise = torch.cat((input_img, noise[:, :1, :, :]), dim=1)
         #cv2.imwrite("halfNoise.png", halfNoise[0].detach().cpu().numpy().transpose((1, 2, 0)) * 255)
         halfRes = self.encoder(halfNoise)
